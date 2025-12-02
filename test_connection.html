@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Server Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Server Connection Test</h1>
+    
+    <div class="test info">
+        <strong>Current URL:</strong> <span id="currentUrl"></span><br>
+        <strong>Protocol:</strong> <span id="protocol"></span><br>
+        <strong>Host:</strong> <span id="host"></span>
+    </div>
+    
+    <div class="test" id="healthTest">
+        <strong>Testing /api/health...</strong>
+        <div id="healthResult">Testing...</div>
+    </div>
+    
+    <div class="test" id="tempTest">
+        <strong>Testing /api/temperature-by-location...</strong>
+        <div id="tempResult">Waiting...</div>
+    </div>
+    
+    <script>
+        // Display current page info
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('protocol').textContent = window.location.protocol;
+        document.getElementById('host').textContent = window.location.host || 'N/A';
+        
+        // Check protocol
+        if (window.location.protocol === 'file:') {
+            document.getElementById('protocol').innerHTML = '<span style="color:red">file:// (WRONG! Use http://localhost:5000)</span>';
+        }
+        
+        // Test health endpoint
+        fetch('/api/health')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('healthTest').className = 'test success';
+                document.getElementById('healthResult').innerHTML = 
+                    '<strong>✓ SUCCESS!</strong><br>' + 
+                    'Status: ' + data.status + '<br>' +
+                    'Message: ' + data.message + '<br>' +
+                    'Processor: ' + data.processor;
+            })
+            .catch(error => {
+                document.getElementById('healthTest').className = 'test error';
+                document.getElementById('healthResult').innerHTML = 
+                    '<strong>✗ ERROR:</strong><br>' + error.message;
+            });
+        
+        // Test temperature endpoint
+        fetch('/api/temperature-by-location')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('tempTest').className = 'test success';
+                document.getElementById('tempResult').innerHTML = 
+                    '<strong>✓ SUCCESS!</strong><br>' + 
+                    'Received ' + data.length + ' locations<br>' +
+                    'Sample: ' + JSON.stringify(data[0]);
+            })
+            .catch(error => {
+                document.getElementById('tempTest').className = 'test error';
+                document.getElementById('tempResult').innerHTML = 
+                    '<strong>✗ ERROR:</strong><br>' + error.message;
+            });
+    </script>
+</body>
+</html>
+
+
+
+
+
